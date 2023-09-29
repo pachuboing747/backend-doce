@@ -47,6 +47,10 @@ class UserManager extends BaseManager {
 
     await userModel.deleteOne({ _id: id })
   }
+  getByEmail(email) {
+
+    return userModel.findOne({ email }).lean()
+  }
 }
 
 module.exports = new UserManager()

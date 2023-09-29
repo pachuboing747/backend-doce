@@ -1,4 +1,4 @@
-const { Router } = require('express')
+ const { Router } = require('express')
 const mailSenderSvc = require('../../service/mail.sender.js')
 
 const router = Router()
@@ -15,7 +15,6 @@ router.get('/mail', (req, res) => {
 
     <p>Tiene status <span style="color: red">Incompleto</span></p>
 
-    <img src="cid:perrito" />
   `
   mailSenderSvc.send('pachu1982721@gmail.com', template)
 
