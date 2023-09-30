@@ -1,4 +1,5 @@
 const cartsManager = require('../dao/managers/cart.manager.js')
+const cartModel = require ("../dao/models/cart.model.js")
 
 const getAll = async (req, res) => {
 
@@ -183,6 +184,47 @@ const deleteAll = async (req, res) => {
     }
 }
 
+const purchase = async (req, res) => {
+  const cartId = req.params.cid;
+
+  try {
+
+    const cart = await cartModel.findById(cartId).populate('items.product');
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
+    }
+
+    const productsToPurchase = cart.items;
+
+    const productsNotPurchased = [];
+
+    for (const cartItem of productsToPurchase) {
+      const product = cartItem.product;
+      const quantityToPurchase = cartItem.quantity;
+
+      if (product.stock >= quantityToPurchase) {
+     
+        product.stock -= quantityToPurchase;
+        await product.save();
+      } else {
+        productsNotPurchased.push(cartItem._id);
+      }
+    }
+
+    const ticket = await TicketService.generateTicket(cartId, productsToPurchase);
+    cart.items = cart.items.filter((cartItem) =>
+      !productsToPurchase.some((purchasedItem) => purchasedItem._id === cartItem._id)
+    );
+    await cart.save();
+
+    return res.status(200).json({ ticket, productsNotPurchased });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al finalizar la compra' });
+  }
+}
+
 module.exports = {
     getAll,
     populate,
@@ -191,5 +233,6 @@ module.exports = {
     deleteProducts,
     getById,
     findById,
-    deleteAll
+    deleteAll,
+    purchase
 }

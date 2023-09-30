@@ -8,7 +8,8 @@ const {
   deleteProducts,
   getById,
   findById,
-  deleteAll
+  deleteAll,
+  purchase
 } = require ("../controllers/cart.controller.js")
 
 const router = Router();
@@ -21,6 +22,7 @@ router.delete("/:cid/products/:pid", deleteProducts);
 router.put("/:cid", getById);
 router.put('/:cid/products/:pid', findById);
 router.delete("/:cid", deleteAll);
+router.get('/:cid/purchase', purchase);
 
 
 module.exports = router;
