@@ -187,28 +187,15 @@ const deleteAll = async (req, res) => {
 }
 
 const purchase = async (req, res) => {
-  const { cartId } = req.params
-
-  /// TODO
-  // ejecutar un metodo en el repository o service para crear la orden de compra
-  // envio al cliente un 201 HTTP ACCEPTED o 400 o 500
-  // cartManager.getById()
-  // purchaseOrderManager.create()
-
-  const cart = await cartsManager.getById(cartId)
+  const { cid } = req.params;
+  const cart = await cartsManager.getById(cid);
 
   if (!cart) {
     return res.sendStatus(404)
   }
 
   const { products: productsInCart } = cart
-  const products = [] // dto
-  // {
-    // price,
-    // id
-    // qty
-  // }
-  // const productsToDelete = []
+
   
   for (const { product: id, qty } of productsInCart) {
     // chequear el stock
@@ -218,14 +205,10 @@ const purchase = async (req, res) => {
 
     const p = await productManager.getById(id)
 
-    // stock: 5, qty: 1 => 1 y -1
-    // stock: 5, qty: 5 => 5 y -5
-    // stock: 5, qty: 6, 6 y -5
-    // stock: 0, qty: 1, 0 y 0
-
-    if (!p.stock) {
-      return
+    if (!p || p.stock < qty) {
+      return res.status(400).send("No hay suficiente stock para este producto.")
     }
+  
 
     const toBuy = p.stock >= qty ? qty : p.stock
 
@@ -243,9 +226,10 @@ const purchase = async (req, res) => {
     await p.save()
 
     // actualizo el carrito
-    // TODO
+    cart.products = cart.products.filter(product => product.product.toString() !== id.toString())
   }
 
+  const updatedCart = await cart.save()
 
   const po = {
     user: null,
@@ -267,13 +251,13 @@ const purchase = async (req, res) => {
 
 
 module.exports = {
-    getAll,
-    populate,
-    create,
-    deleteId,
-    deleteProducts,
-    getById,
-    findById,
-    deleteAll,
-    purchase
+  getAll,
+  populate,
+  create,
+  deleteId,
+  deleteProducts,
+  getById,
+  findById,
+  deleteAll,
+  purchase
 }

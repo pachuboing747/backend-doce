@@ -40,11 +40,6 @@ class CartsManager extends BaseManager {
       return null;
     }
   }
-
-  async getById(id) {
-    const entities = await cartModel.find({_id: id})
-    return entities[0]
-  }
 }
 
 
