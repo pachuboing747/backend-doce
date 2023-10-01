@@ -1,6 +1,7 @@
 const { Schema, model } = require('mongoose')
 
 const schema = new Schema({
+  user: {type: Schema.Types.ObjectId, ref: "users"},
   products: { 
     type: [{
       product: { type: Schema.Types.ObjectId , ref: "products"},
@@ -14,6 +15,7 @@ const schema = new Schema({
     }],
     default: []
   },
+  createdDate: { type: Number, default: Date.now() }
 })
 
 schema.pre("findOne", function () {
@@ -21,6 +23,5 @@ schema.pre("findOne", function () {
 })
 
 const cartModel = model('carts', schema)
-
 
 module.exports = cartModel

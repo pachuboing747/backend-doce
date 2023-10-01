@@ -8,7 +8,6 @@ class CartsManager extends BaseManager {
     super(cartModel)
   }
 
-
   async updateProductQuantity(cartId, productId, newQuantity) {
     try {
       const cart = await this.model.findById(cartId);
@@ -40,6 +39,11 @@ class CartsManager extends BaseManager {
       console.error("Error al obtener el carrito:", error);
       return null;
     }
+  }
+
+  async getById(id) {
+    const entities = await cartModel.find({_id: id})
+    return entities[0]
   }
 }
 

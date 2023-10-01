@@ -22,7 +22,7 @@ router.delete("/:cid/products/:pid", deleteProducts);
 router.put("/:cid", getById);
 router.put('/:cid/products/:pid', findById);
 router.delete("/:cid", deleteAll);
-router.get('/:cid/purchase', purchase);
+router.get("/:cid/purchase", purchase);
 
 
 module.exports = router;

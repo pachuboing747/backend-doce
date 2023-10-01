@@ -1,5 +1,7 @@
 const cartsManager = require('../dao/managers/cart.manager.js')
-const cartModel = require ("../dao/models/cart.model.js")
+const productManager = require('../dao/managers/product.manager.js')
+const CartModel = require ("../dao/models/cart.model.js")
+
 
 const getAll = async (req, res) => {
 
@@ -185,45 +187,84 @@ const deleteAll = async (req, res) => {
 }
 
 const purchase = async (req, res) => {
-  const cartId = req.params.cid;
+  const { cartId } = req.params
 
-  try {
+  /// TODO
+  // ejecutar un metodo en el repository o service para crear la orden de compra
+  // envio al cliente un 201 HTTP ACCEPTED o 400 o 500
+  // cartManager.getById()
+  // purchaseOrderManager.create()
 
-    const cart = await cartModel.findById(cartId).populate('items.product');
+  const cart = await cartsManager.getById(cartId)
 
-    if (!cart) {
-      return res.status(404).json({ message: 'Carrito no encontrado' });
-    }
-
-    const productsToPurchase = cart.items;
-
-    const productsNotPurchased = [];
-
-    for (const cartItem of productsToPurchase) {
-      const product = cartItem.product;
-      const quantityToPurchase = cartItem.quantity;
-
-      if (product.stock >= quantityToPurchase) {
-     
-        product.stock -= quantityToPurchase;
-        await product.save();
-      } else {
-        productsNotPurchased.push(cartItem._id);
-      }
-    }
-
-    const ticket = await TicketService.generateTicket(cartId, productsToPurchase);
-    cart.items = cart.items.filter((cartItem) =>
-      !productsToPurchase.some((purchasedItem) => purchasedItem._id === cartItem._id)
-    );
-    await cart.save();
-
-    return res.status(200).json({ ticket, productsNotPurchased });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error al finalizar la compra' });
+  if (!cart) {
+    return res.sendStatus(404)
   }
-}
+
+  const { products: productsInCart } = cart
+  const products = [] // dto
+  // {
+    // price,
+    // id
+    // qty
+  // }
+  // const productsToDelete = []
+  
+  for (const { product: id, qty } of productsInCart) {
+    // chequear el stock
+    // 1. si el qty <= stock entonces agrego el producto al array y lo elimino del carro
+    // 2. actualizo el stock
+
+
+    const p = await productManager.getById(id)
+
+    // stock: 5, qty: 1 => 1 y -1
+    // stock: 5, qty: 5 => 5 y -5
+    // stock: 5, qty: 6, 6 y -5
+    // stock: 0, qty: 1, 0 y 0
+
+    if (!p.stock) {
+      return
+    }
+
+    const toBuy = p.stock >= qty ? qty : p.stock
+
+    products.push({
+      id: p._id,
+      price: p.price,
+      qty: toBuy
+    })
+
+    //
+    
+    /// actualizar el stock
+    p.stock = p.stock - toBuy
+
+    await p.save()
+
+    // actualizo el carrito
+    // TODO
+  }
+
+
+  const po = {
+    user: null,
+    products: products.map(({ id, qty}) =>  {
+      return {
+        product: id,
+        qty,
+        code: null,
+        total: products.reduce((total, { price, qty}) => (price * qty) + total, 0), 
+      }
+    })
+  }
+
+  console.log(po)
+
+
+  res.send(po)
+};
+
 
 module.exports = {
     getAll,
