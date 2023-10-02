@@ -190,69 +190,64 @@ const deleteAll = async (req, res) => {
     }
 }
 
-// const purchase = async (req, res) => {
-//   const { cid } = req.params;
-//   const cart = await cartsManager.getPopulate(cid);
+const  updateCart = async (req, res)  => {
+  const { cid } = req.params
+  const { body } = req
 
-//   if (!cart) {
-//     return res.status(404).send("No se encuentra un carrito de compras con el identificador proporcionado");
-//   }
+  try {
+      const cartId = await cartsManager.getCartById( cid )
+      if(!cartId){
+          res.status(404).send({
+              Error: 'ID DE CARRITO INEXISTENTE'
+          })
+          return
+      }
+      
+      await cartsManager.updateCart(cid, body)
+      res.status(202).send({ Accepted: `El carrito con id: ${cid} ha sido modificado.` })
+  } catch (error) {
+      console.log(error)
+      res.status(500).send({ error: 'Ocurrio un error en el sistema'})
+  }
+}
 
-//   const { products: productsInCart } = cart;
-//   const products = [];
+const  updateProductCart = async (req, res) =>{
+  const { cid, idProduct } = req.params
+  const { body } = req
+
+  try {
+      const cartId = await cartsManager.getCartById( cid )
+
+      if(!body == { qty: Number }){
+          console.log('Error')
+      }
+      
+      if(!cartId){
+          res.status(404).send({
+              Error: 'ID DE CARRITO INEXISTENTE'
+          })
+          return
+      }
   
-//   for (const { product: id, qty } of productsInCart) {
-//     const p = await productManager.getById(id);
+      if(!cartId.products.find(pr => pr.product == idProduct)){
+          res.status(404).send({
+              Error: 'ID DEL PRODUCTO INEXISTENTE'
+          })
+          return
+      }
+  
+      await cartsManager.updateProductCart(cid, body, idProduct) 
+      res.status(202).send({ Accepted: `El producto con id: ${idProduct} del carrito con id: ${cid} ha modificado su cantidad` })
 
-//     if (!p || p.stock < qty) {
-//       return res.status(400).send("No hay suficiente stock para este producto.");
-//     }
+  } catch (error) {
+      console.log(error)
+      res.status(500).send({ error: 'Ocurrio un error en el sistema'})
+  }
 
-//     const toBuy = p.stock >= qty ? qty : p.stock;
-
-//     products.push({
-//       id: p._id,
-//       title: p.title,
-//       description: p.description,
-//       price: p.price,
-//       qty: toBuy,
-//       stock: p.stock 
-//     });
-
-//     p.stock = p.stock - toBuy;
-//     await p.save();
-//   }
-
-//   cart.products = cart.products.filter(({ product: id }) => {
-//     return !products.some(({ id: productId }) => productId.toString() === id.toString());
-//   });
-
-//   const po = {
-//     user: null,
-//     products: products.map(({ id, qty, title, description, price, stock }) =>  {
-//       return {
-//         product: {
-//           id,
-//           title,
-//           description,
-//           price,
-//           stock 
-//         },
-//         qty,
-//         code: null,
-//         total: products.reduce((total, { price, qty }) => (price * qty) + total, 0),
-//       };
-//     }),
-//   };
-
-//   console.log(po);
-//   res.send(po);
-// };
+}
 
 const purchase = async (req, res) =>{
   const { cid } = req.params
-
-  // Ejecutamos un metodo para crear la orden de compra
 
       let cart = await cartsManager.getById(cid)
 
@@ -264,37 +259,33 @@ const purchase = async (req, res) =>{
       const products = [] 
       const productsDelete = []
 
-      for (const { product: id, quantity } of productsInCart) {
-          // Chequeo el Stock
+      for (const { product: id, qty } of productsInCart) {
           
-          const p = await productManager.getProductById(id)
+        const p = await productManager.getProductById(id)
 
-          if(!p.stock){
-              return
-          }
+        if(!p.stock){
+          return
+        }
 
-          const toBuy = p.stock >= quantity ? quantity : p.stock
+        const toBuy = p.stock >= qty ? qty : p.stock
 
-          products.push({
+        products.push({
+          id: p._id,
+          price: p.price,
+          qty: toBuy
+        })
+          
+          if(qty > p.stock){
+            productsDelete.push({
               id: p._id,
-              price: p.price,
-              quantity: toBuy
-          })
-          
-          // Array de productos que no pudieron comprarse
-          if(quantity > p.stock){
-              productsDelete.push({
-                  id: p._id,
-                  unPurchasedQuantity: quantity - p.stock
-              })
+              unPurchasedQuantity: qty - p.stock
+            })
           } 
           
-          // Actualizacion del carrito de compras
-          if(p.stock > quantity){
-              await cartsManager.deleteProductsCart(cid)
+          if(p.stock > qty){
+            await cartsManager.deleteProductsCart(cid)
           }
           
-          // Actualizamos el Stock
           p.stock = p.stock - toBuy
           
           await p.save()
@@ -302,15 +293,13 @@ const purchase = async (req, res) =>{
           console.log(p)
       }
 
-      // Dejar el carrito de compras con los productos que no pudieron comprarse. 
       for(const { id, unPurchasedQuantity } of productsDelete) {
           await cartsManager.addProductCart(cid, id)
-          await cartsManager.updateProductCart(cid, {quantity: unPurchasedQuantity}, id)
+          await cartsManager.updateProductCart(cid, {qty: unPurchasedQuantity}, id)
       }
 
-      cart = await cart.populate({ path: 'user', select: [ 'email', 'first_name', 'last_name' ] })
+      cart = await cart.populate({ path: 'user', select: [ 'email', 'firstname', 'lastname' ]})
 
-      //FECHA
       const today = new Date()
       const hoy = today.toLocaleString()
 
@@ -319,11 +308,11 @@ const purchase = async (req, res) =>{
       const order = {
           user: firstname,
           code: Date.now(),
-          total: products.reduce((total, { price, quantity }) => (price * quantity) + total, 0),
-          products: products.map(({ id, quantity }) => {
+          total: products.reduce((total, { price, qty }) => (price * qty) + total, 0),
+          products: products.map(({ id, qty }) => {
               return {
                   product: id,
-                  quantity
+                  qty
               }
           }),
           purchaser: user,
@@ -331,8 +320,6 @@ const purchase = async (req, res) =>{
       }
 
       purchaseManager.addOrder(order)
-
-      // Envio de Ticket al mail
 
       const template = `
           <h2>¡Hola ${firstname}!</h2>
@@ -355,11 +342,63 @@ const purchase = async (req, res) =>{
       mailSenderService.send(order.purchaser, template)
 
       res.status(202).send(
-          {
-              Accepted: `!Felicitaciones ha finalizado su compra!. Orden enviada por mail`,
-              unPurchasedProducts: productsDelete
-          })
+      {
+        Accepted: `!Felicitaciones ha finalizado su compra!. Orden enviada por mail`,
+        unPurchasedProducts: productsDelete
+      })
 
+      
+
+}
+
+const  getOrders = async (req, res) => {
+
+  const orders = await purchaseManager.getOrders()
+
+  res.send(orders)
+}
+
+const  getOrderById = async (req, res) => {
+  const { id } = req.params
+
+  try {
+      
+      const order = await purchaseManager.getOrderById(id)
+      if(!order){
+          res.status(404).send({
+              Error: 'ID DE LA ORDEN INEXISTENTE'
+          })
+          return
+      }
+
+      res.send(order)
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).send({ error: 'Ocurrio un error en el sistema'})
+  }
+}
+
+const  deleteOrder  = async (req, res) => {
+  const { id } = req.params
+
+  try {
+      
+      const order = await purchaseManager.getOrderById(id)
+      if(!order){
+          res.status(404).send({
+              Error: 'ID DE LA ORDEN INEXISTENTE'
+          })
+          return
+      }
+
+      await purchaseManager.deleteOrder(id)
+      res.status(202).send({Accepted: `Se ha eliminado con exito la orden con id: ${id}`})
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).send({ error: 'Ocurrio un error en el sistema'})
+  }
 }
 
 
@@ -372,5 +411,10 @@ module.exports = {
   getById,
   findById,
   deleteAll,
-  purchase
+  purchase,
+  updateProductCart,
+  updateCart,
+  getOrders,
+  getOrderById,
+  deleteOrder
 }

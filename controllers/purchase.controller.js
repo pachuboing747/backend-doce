@@ -83,8 +83,6 @@ class CartRouter extends CustomRouter {
 
       console.log(po)
 
-      // guardar el ticket/po/order en la db
-      // enviar un sms o un email
 
       res.send(po)
     })

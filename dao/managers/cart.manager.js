@@ -41,6 +41,50 @@ class CartsManager extends BaseManager {
     }
   }
 
+  async updateCart (cid, product){
+
+    let cart = await cartModel.findOne({ _id: cid })
+
+    cart.products = product
+
+    cart.save()
+
+}
+
+  async updateProductCart (cid, newQuantity, idProduct) {
+    let cart = await cartModel.findOne({ _id: cid })
+
+    const productId = await productModel.findOne({ _id: idProduct})
+
+    const p = cart.products.find(prod => prod.product.equals(productId._id))
+
+    p.qty = newQuantity.qty
+
+    cart.save()
+  }
+
+    async getCartById (req, res) {
+      const { cid } = req.params
+
+      try {
+          
+          const cartId = await cartModel.getCartById( cid )
+          if(!cartId){
+              res.status(404).send({
+                  Error: 'ID DE CARRITO INEXISTENTE'
+              })
+              return
+          }
+
+          res.send(cartId)
+
+      } catch (error) {
+          console.log(error)
+          res.status(500).send({ error: 'Ocurrio un error en el sistema'})
+      }
+
+  }
+
 }
 
 

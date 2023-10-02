@@ -14,11 +14,6 @@ const schema = new Schema({
   },
 })
 
-schema.pre("findOne", function(){
-  this.populate({ path: 'user', select: ['email', 'firstname', 'lastname'] })
-})
-
-
 const userModel = model('users', schema)
 
 module.exports = userModel
