@@ -18,7 +18,7 @@ class MailSender{
         const response = await  this.transporter.sendMail({
             from: "no-reply@coder.com",
             subject:"prueba",
-            to,
+            to: mail.GMAIL_ADDRESS,
             html: body
 
         })
