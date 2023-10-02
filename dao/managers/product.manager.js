@@ -7,10 +7,6 @@ class ProductManager extends BaseManager  {
     super(productModel)
   }
 
-  getById(id) {
-    return this.model.findOne({ _id: id })
-  }
-
 }
 
 module.exports = new ProductManager() 
