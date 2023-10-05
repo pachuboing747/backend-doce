@@ -2,6 +2,9 @@ const { Router } = require('express')
 const path = require('path')
 const productManager = require('../dao/managers/product.manager.js')
 const cartsManager = require ("../dao/managers/cart.manager.js")
+const {customError, ErrorType  } = require ("../error/errors.js")
+
+
 
 
 const getAllPaged = async (req, res) => {
@@ -35,7 +38,7 @@ const chat = (req, res) => {
     })
 }
 
-const getAll = async (req, res) => {
+const getAllRealTime = async (req, res) => {
  
     const products = await productManager.getAll()
    
@@ -116,12 +119,28 @@ const carts = async(req, res)=>{
     })
 }
 
+const errorHandle = (req, res, next) => {
+  try {
+    const customError = new Error(ErrorType.EXECUTION_ERROR);
+
+    customError.statusCode = 500; 
+    throw customError;
+    
+  } catch (error) {
+  
+    next(error);
+  }
+};
+
+
+
 module.exports = {
     getAllPaged,
     chat,
-    getAll,
+    getAllRealTime,
     getAllProducts,
     getById,
     profile,
-    carts
+    carts,
+    errorHandle
 }

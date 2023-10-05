@@ -1,12 +1,17 @@
+const {generateProducts} = require ("../../utils/mock.js")
+
 class BaseManager {
     constructor(model){
       this.model = model
     }
 
-    getAll() {
-      return this.model.find().lean()
-    }
+    // getAll() {
+    //   return this.model.find().lean()
+    // }
 
+    getAll () {
+      return generateProducts()
+    }
 
   getAllPaged(page = 1, limit = 10) {
     return this.model.paginate({}, { limit, page, lean: true })

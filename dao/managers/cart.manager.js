@@ -63,7 +63,8 @@ class CartsManager extends BaseManager {
     cart.save()
   }
 
-    async getCartById (req, res) {
+
+  async getCartById (req, res) {
       const { cid } = req.params
 
       try {
@@ -84,6 +85,13 @@ class CartsManager extends BaseManager {
       }
 
   }
+
+  async addCart (req, res) {
+    
+   await this.model.addCart()
+    res.status(201).send({Created: 'El carrito fue creado con exito!'})
+
+}
 
 }
 

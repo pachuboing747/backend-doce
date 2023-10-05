@@ -72,6 +72,16 @@
       next()
     }, Routes.api, cartRouter)
 
+    app.use((err, req, res, next) => {
+      console.log()
+      console.log()
+    
+      res.send({
+        success: false,
+        error: err.stack
+      })
+    })
+
     io.on('connection', socketManager)
 
     const port = 8080

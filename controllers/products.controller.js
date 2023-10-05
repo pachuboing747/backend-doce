@@ -1,4 +1,6 @@
 const productManager = require('../dao/managers/product.manager.js')
+const {generateProducts} = require ("../utils/mock.js")
+
 
 const getById = async (req, res) => {
     const { id } = req.params
@@ -91,11 +93,16 @@ const putPatch = async (req, res) => {
     }  
 }
 
+const mocking = () => {
+  return generateProducts ()
+}
+
 
 module.exports = {
     getById,
     getAll,
     create,
     deleteById,
-    putPatch
+    putPatch,
+    mocking
 }

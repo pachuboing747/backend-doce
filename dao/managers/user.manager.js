@@ -7,7 +7,6 @@ class UserManager extends BaseManager {
     super(userModel)
   }
 
-
   getById(id) {
     return userModel.findOne({ _id: id }).lean()
   }
@@ -47,6 +46,7 @@ class UserManager extends BaseManager {
 
     await userModel.deleteOne({ _id: id })
   }
+
   getByEmail(email) {
 
     return userModel.findOne({ email }).lean()

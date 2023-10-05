@@ -3,7 +3,7 @@ const isAuth = require('../middlewares/auth')
 const {
   getAllPaged,
   chat,
-  getAll,
+  getAllRealTime,
   getAllProducts,
   getById,
   profile,
@@ -17,7 +17,7 @@ router.get('/', getAllPaged)
 
 router.get('/chat', isAuth, chat)
 
-router.get('/realtimesProducts', getAll)
+router.get('/realtimesProducts', getAllRealTime)
 
 router.get("/products", getAllProducts);
 
