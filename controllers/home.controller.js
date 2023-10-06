@@ -134,13 +134,9 @@ const errorHandle = (req, res, next) => {
 };
 
 const mocking = (req, res) => {
-  const mockedProducts = generateProducts(); // Genera los productos ficticios
-  res.render('mocking', { products: mockedProducts }); // Aquí se especifica 'mocking' en lugar de 'mockingProducts'
+  const mockedProducts = generateProducts();
+  res.render('mocking', { products: mockedProducts }); 
 };
-
-
-
-
 
 module.exports = {
     getAllPaged,
