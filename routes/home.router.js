@@ -7,7 +7,9 @@ const {
   getAllProducts,
   getById,
   profile,
-  carts
+  carts,
+  mocking
+
 } = require ("../controllers/home.controller.js")
 
 const router = Router()
@@ -26,5 +28,7 @@ router.post("/products", isAuth, getById);
 router.get('/profile', isAuth, profile)
 
 router.get("/carts", carts)
+
+router.get("/mockingProducts", mocking)
 
 module.exports = router

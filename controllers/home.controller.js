@@ -3,6 +3,7 @@ const path = require('path')
 const productManager = require('../dao/managers/product.manager.js')
 const cartsManager = require ("../dao/managers/cart.manager.js")
 const {customError, ErrorType  } = require ("../error/errors.js")
+const  {generateProducts} = require ("../utils/mock.js")
 
 
 
@@ -132,6 +133,13 @@ const errorHandle = (req, res, next) => {
   }
 };
 
+const mocking = (req, res) => {
+  const mockedProducts = generateProducts(); // Genera los productos ficticios
+  res.render('mocking', { products: mockedProducts }); // Aquí se especifica 'mocking' en lugar de 'mockingProducts'
+};
+
+
+
 
 
 module.exports = {
@@ -142,5 +150,6 @@ module.exports = {
     getById,
     profile,
     carts,
-    errorHandle
+    errorHandle,
+    mocking
 }
